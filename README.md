@@ -5,15 +5,21 @@
 
 * [Final Exam – BIA 5402](#final-exam-bia-5402)
   * [Table of Contents](#table-of-contents)
-  * [Part A: Data Preparation & Exploration](#part-a-data-preparation--exploration)
-    * [What kind of problems can arise if we do not handle missing time steps in time series data?](#what-kind-of-problems-can-arise-if-we-do-not-handle-missing-time-steps-in-time-series-data)
-  * [Part B: Time Series Analysis](#part-b-time-series-analysis)
-    * [Stationarity Check](#stationarity-check)
-    * [Decompose the Series](#decompose-the-series)
-  * [Part C: Forecasting Models](#part-c-forecasting-models)
-  * [Part D: Model Evaluation & Business Recommendation](#part-d-model-evaluation--business-recommendation)
+  * [Case study 1](#case-study-1)
+    * [Part A: Data Preparation & Exploration](#part-a-data-preparation--exploration)
+        * [What kind of problems can arise if we do not handle missing time steps in time series data?](#what-kind-of-problems-can-arise-if-we-do-not-handle-missing-time-steps-in-time-series-data)
+    * [Part B: Time Series Analysis](#part-b-time-series-analysis)
+        * [Stationarity Check](#stationarity-check)
+        * [Decompose the Series](#decompose-the-series)
+    * [Part C: Forecasting Models](#part-c-forecasting-models)
+    * [Part D: Model Evaluation & Business Recommendation](#part-d-model-evaluation--business-recommendation)
+  * [Case study 2](#case-study-2)
+    * [Part A: Data Exploration and Cleaning](#part-a-data-exploration-and-cleaning)
+    * [Part B: Modeling Florence Book Purchase](#part-b-modeling-florence-book-purchase)
 
-## Part A: Data Preparation & Exploration
+## Case study 1
+
+### Part A: Data Preparation & Exploration
 
 * The preprocessing code involved:
 
@@ -38,14 +44,14 @@
 2. Seasonality: The data covers only 3 weeks, which is insufficient to confirm true seasonality. However, there's a noticeable pattern of sharp drops around March 5th, 12th, and 19th (Saturdays). This strongly suggests a potential weekly pattern (lower demand on weekends), but more data would be needed for confirmation.
 3. Irregularity: The series exhibits significant fluctuations (volatility). The most prominent irregularities are the sharp drops suspected to be linked to weekends. Day-to-day demand varies considerably otherwise.
 
-### What kind of problems can arise if we do not handle missing time steps in time series data?
+#### What kind of problems can arise if we do not handle missing time steps in time series data?
 
 * Incorrect Calculations: Breaks the assumption of regular intervals, leading to errors in calculating lags, rolling statistics, and correlations (ACF/PACF).
 * Inaccurate Models & Forecasts: Standard time series models (like ARIMA) expect regular data, so gaps lead to biased parameters and unreliable predictions.
 * Misleading Visuals: Plots can distort time, hiding gaps and suggesting incorrect trends or patterns.
 * Tool/Function Errors: Many standard time series analysis tools may fail or produce wrong results if data intervals aren't consistent.
 
-### How would differencing help here, and how do you detect the correct level of differencing needed?
+#### How would differencing help here, and how do you detect the correct level of differencing needed?
 
 1. How Differencing Helps
 
@@ -60,9 +66,9 @@
 * It's important to note that differencing does not directly solve the problem of missing time steps. Missing data needs to be handled first (e.g., by filling gaps or using models that can handle them). Differencing is usually applied after ensuring the time series has a complete, regular index, to prepare it for modeling by achieving stationarity.   
 
 
-## Part B: Time Series Analysis
+### Part B: Time Series Analysis
 
-### Stationarity Check
+#### Stationarity Check
 
 [Stationarity check python code script](./scripts/stationarity.py)
 
@@ -80,7 +86,7 @@
 
     * Comment: The plot clearly shows that the rolling mean (red line) is not constant; it exhibits noticeable downward and upward movements over time. The rolling standard deviation (black line) also varies significantly, particularly spiking during the sharp drops in demand. This visual evidence supports the ADF test result, confirming that the series is non-stationary as its statistical properties change1 over time.   
 
-### Decompose the Series
+#### Decompose the Series
 
 [Decompose code script](./scripts/decompose.py)
 
@@ -100,7 +106,7 @@
     * The decomposition was performed assuming a period of 7 days, based on the visual pattern in the original data. The resulting 'Seasonal' component plot confirms a strong, repeating pattern that aligns with this 7-day cycle.
     * Therefore, the seasonality observed in this data is weekly.
 
-## Part C: Forecasting Models
+### Part C: Forecasting Models
 
 * [Forecasting code script](./scripts/train.py)
 
@@ -114,7 +120,7 @@
     * p=1, q=0 (Non-seasonal AR/MA): After applying both non-seasonal (d=1) and seasonal (D=1) differencing, very few data points remain to analyze reliably via ACF/PACF. Choosing p=1 assumes there might be some correlation left with the immediately preceding value after differencing. Setting q=0 keeps the model as simple as possible (an AR(1) structure for the non-seasonal part).
     * P=1, Q=0 (Seasonal AR/MA): Similar to the non-seasonal part, analyzing ACF/PACF at seasonal lags (7, 14...) after differencing is unreliable. Choosing P=1 assumes some correlation might remain with the value from the previous season (lag 7) after differencing. Setting Q=0 again keeps the seasonal part as simple as possible (a seasonal AR(1) structure).
 
-## Part D: Model Evaluation & Business Recommendation
+### Part D: Model Evaluation & Business Recommendation
 
 * [Evaluation Metrics code script](./scripts/update.py)
 
@@ -163,3 +169,70 @@
     * Holidays or Special Events: Any local holidays, festivals, or major events occurring during the forecast period could temporarily boost or alter demand patterns.
     * Economic Factors: While less likely to change drastically in two weeks, sudden shifts in local economic conditions or consumer confidence could have an effect.
     * Supply Chain Disruptions: Issues like stockouts at key retailers, although technically a supply issue, would manifest as lower measured demand than forecasted.
+
+## Case study 2
+
+### Part A: Data Exploration and Cleaning
+
+* Target Variable: I created a new column Florence_Buyer where 1 indicates the customer bought the Florence travel book and 0 indicates they did not. This simplifies the analysis.
+
+* Overall Purchase Patterns:
+
+    * Across all customers, the most frequently purchased genres are Cook Books (CookBks), Children's Books (ChildBks), and Geography Books (GeogBks).
+    * The average number of books purchased per customer is highest for CookBks (0.73) and ChildBks (0.64).
+    * Italian-themed books like ItalAtlas and ItalArt have the lowest average purchases (0.04 and 0.05, respectively).
+Purchase Patterns by Florence Buyer Status:
+
+    * Customers who purchased the Florence travel book (Florence_Buyer = 1) generally buy slightly more books across most genres compared to those who didn't (Florence_Buyer = 0).
+    * The most notable differences are in Art Books (ArtBks), Geography Books (GeogBks), Reference Books (RefBks), Do-It-Yourself Books (DoItYBks), and Youth Books (YouthBks), where Florence buyers purchase noticeably more on average.
+    * For instance, Florence buyers purchase an average of 0.52 Art Books compared to 0.27 for non-buyers, and 0.57 Geography Books compared to 0.37 for non-buyers.
+    * Purchases of Italian-themed books (ItalCook, ItalAtlas, ItalArt) are also slightly higher among Florence buyers, though the overall purchase rates for these genres remain low.
+
+* [Remove Columns Script](./scripts/remove_columns.py)
+
+* [Random Forest model](./scripts/randomforestmodel.py)
+
+* Result: ![result](./images/image.png)
+
+### Part B: Modeling Florence Book Purchase
+
+* [Classification moded script](./scripts/classification_model.py)
+
+* Result: ![result](./images/classification%20model.png)
+
+* Key Drivers of Customer Behavior (Influencing Florence Book Purchase):
+
+* Based on the Random Forest model, the most important factors are:
+
+    * M (Monetary): Total amount spent by the customer. This was the strongest predictor.
+    * FirstPurch: Months since the customer's first purchase (indicating customer tenure).
+    * R (Recency): Months since the customer's last purchase.
+    * F (Frequency): Total number of purchases made.
+    * Related Purchase: Number of related books purchased.
+
+* Interpretation:
+
+    * The model suggests that established, high-spending customers who purchase frequently and recently are the most likely to buy the specialty Florence travel guide. General purchasing habits (RFM metrics and customer tenure) are more influential than purchases within specific genres like Art or Geography, even though we initially observed some correlation there. Italian-themed books had minimal predictive impact according to the model
+
+* Final
+
+    * Ensemble methods, like the Random Forest we used, often outperform simpler models like Logistic Regression for several reasons, particularly in contexts like customer behavior analysis:   
+
+        * Capturing Non-Linear Relationships: Logistic Regression assumes a linear relationship between the features and the log-odds of the target variable (buying the Florence book). Customer behavior is rarely strictly linear. For example, the impact of total spending (M) might increase sharply initially but then level off, or the effect of purchase recency (R) might be non-linear. Random Forests, being based on decision trees, can naturally capture these complex, non-linear patterns without needing features to be transformed first.   
+
+        * Handling Feature Interactions: The effect of one feature might depend on the value of another. For instance, high purchase frequency (F) might be a strong predictor only if combined with high monetary value (M). Random Forests automatically consider these interactions as they build trees and split nodes based on different features at different levels. In Logistic Regression, you would typically need to manually create interaction terms (e.g., F * M) to capture these effects.   
+
+        * Robustness to Outliers: Random Forests are generally less sensitive to outliers than Logistic Regression because decision tree splits are based on partitioning the data rather than fitting a specific linear equation influenced by extreme values.
+
+        * Reduced Variance: A single decision tree can be prone to overfitting (high variance). Random Forest reduces this variance by building many trees on different subsets of the data and features, then averaging their predictions. This typically leads to a more robust and generalizable model.   
+
+        * No Need for Feature Scaling: Tree-based methods like Random Forest are not sensitive to the scale of features, whereas Logistic Regression often requires features to be scaled (e.g., standardized) for optimal performance, especially when regularization is used.   
+
+    * While Logistic Regression is simpler and its coefficients are easier to interpret directly, the ability of ensemble methods like Random Forest to model complex, non-linear patterns and feature interactions often gives them an advantage in predictive accuracy for datasets exhibiting these characteristics, which is common in customer purchasing data.
+
+* Apriori script
+    * [Script](./scripts/apriori.py)
+
+* Result: ![result](./images/result.png)
+
+* Preview top 3 rules and provide actionable insights result by script : ![result 2](./images/result2.png)
